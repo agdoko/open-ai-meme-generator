@@ -2,3 +2,9 @@
 .env
 __pycache__/
 *.pyc
+.python-version
+uv.lock
+*.log
+.DS_Store
+*.idea/
+*.code-workspace
