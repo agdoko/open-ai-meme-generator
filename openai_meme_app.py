@@ -90,9 +90,9 @@ if st.button("Make my Meme"):
 
             draw = ImageDraw.Draw(base_image)
             try:
-                font = ImageFont.truetype("impact.ttf", size=50)  # Meme-style font, 5x larger
+                font = ImageFont.truetype("impact.ttf", size=60)  # Meme-style font, 5x larger
             except IOError:
-                font = ImageFont.truetype("arial.ttf", size=50)  # Fallback if impact.ttf missing
+                font = ImageFont.load_default(size=60)  # Fallback to larger default font
             width, height = base_image.size
             bbox = draw.textbbox((0, 0), top_text, font=font)
             tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
