@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI(api_key = os.getenv("OPENAI_API_KEY"))
 
 st.title("Pokemon Meme Generaotr")
 
@@ -33,7 +33,7 @@ if st.button("Make my Meme"):
                 3. Output in JSON format: {"top_text": "...", "bottom_text": "...", "image_prompt": "..."}
 
                 """
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -42,29 +42,33 @@ if st.button("Make my Meme"):
                 temperature=1.2
             )
             import json
-            data = json.loads(response.choices[0].message['content'])
+            data = json.loads(response.choices[0].message.content)
             top_text = data['top_text']
             bottom_text = data['bottom_text']
             image_prompt = data['image_prompt']
 
             st.write(f"Generated Captions: Top - {top_text} | Bottom - {bottom_text}")
 
-            image_response = openai.Image.create(
+            image_response = client.images.generate(
                 model="dall-e-3",
                 prompt=image_prompt,
                 n=1,
                 size="1024x1024"
             )
-            image_url = image_response['data'][0]['url']
+            image_url = image_response.data[0].url
             image_data = requests.get(image_url).content
             base_image = Image.open(BytesIO(image_data))
 
             draw = ImageDraw.Draw(base_image)
-            font = ImageFont.truetype("arial.ttf", size=60)  # Download impact.ttf for better meme style
+            font = ImageFont.load_default()
             width, height = base_image.size
-            tw, th = draw.textsize(top_text, font=font)
+            
+            # Replace these lines in the draw section of openai_meme_app.py
+            bbox = draw.textbbox((0, 0), top_text, font=font)
+            tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
             draw.text(((width - tw) / 2, 10), top_text, fill="white", font=font, stroke_width=3, stroke_fill="black")
-            bw, bh = draw.textsize(bottom_text, font=font)
+            bbox = draw.textbbox((0, 0), bottom_text, font=font)
+            bw, bh = bbox[2] - bbox[0], bbox[3] - bbox[1]
             draw.text(((width - bw) / 2, height - bh - 20), bottom_text, fill="white", font=font, stroke_width=3, stroke_fill="black")
 
             st.image(base_image, caption="Your OpenAI Meme!")
